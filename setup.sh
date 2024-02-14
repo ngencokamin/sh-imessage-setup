@@ -57,7 +57,6 @@ add_alias() {
             sed -i -e '/alias start-bb-server/d' "$HOME/.zshrc"
             echo "alias start-bb-server=\"$bb_command\"" >> $HOME/.bashrc
         fi
-        shell_config=".zshrc"
     else
         echo "Checking for existing bashrc"
         if ! [ -f "$HOME/.bashrc" ]; then
@@ -68,7 +67,6 @@ add_alias() {
             sed -i -e '/alias start-bb-server/d' "$HOME/.bashrc"
             echo "alias start-bb-server=\"$bb_command\"" >> $HOME/.bashrc
         fi
-        shell_config=".bashrc"
     fi
     alias start-bb-server="$bb_command"
 }
