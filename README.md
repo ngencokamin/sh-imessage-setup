@@ -15,10 +15,11 @@ For initial BlueBubbles setup, see [this guide](https://bluebubbles.app/install/
 
 ### Setup
 
-1. On your Mac, clone this repo to whatever folder you would like
-2. Navigate into the cloned folder with `cd sh-imessage-setup`
-3. Add run permissions with `chmod +x setup.sh`
-4. Run `./setup.sh` and follow the prompts from the script
+1. Open a new terminal window on your Mac
+2. Run `git clone https://github.com/ngencokamin/sh-imessage-setup.git` to clone this repo to your device
+3. Navigate into the cloned folder with `cd sh-imessage-setup`
+4. Add run permissions with `chmod +x setup.sh`
+5. Run `./setup.sh` and follow the prompts from the script
 
 ### Automating Startup
 
