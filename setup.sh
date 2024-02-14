@@ -209,8 +209,8 @@ read -r -p "Would you like to add an alias to your shell to be able to start the
 
 build_command
 
-echo "Command created! You can now start your bridge with the following command!"
-if $use_alias; then echo "source ~/$shell_config && start-bb-server test"; else echo "$bb_command"; fi
+echo "Command created! You can now start your bridge by opening a new terminal window and running the following command!"
+if $use_alias; then echo "start-bb-server"; else echo "$bb_command"; fi
 
 echo
 
