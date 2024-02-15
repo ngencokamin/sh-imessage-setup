@@ -12,7 +12,7 @@ download() {
     echo "Getting OS"
     [[ `uname -s` == "Linux" ]] && os_type="linux" || os_type="macos"
     echo "Getting archicture"
-    [[ `uname -p` == "Arm" ]] && architecture="arm64" || architecture="amd64"
+    [[ `uname -p` == "arm" ]] && architecture="arm64" || architecture="amd64"
     echo "Downloading latest executable"
     curl -L https://nightly.link/beeper/bridge-manager/workflows/go.yaml/main/bbctl-$os_type-$architecture.zip --output bbctl.zip
     unzip bbctl
