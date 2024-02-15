@@ -49,24 +49,18 @@ download() {
 add_alias() {
     if [[ $SHELL == *"zsh" ]]; then
         echo "Checking for existing zshrc"
-        if ! [ -f "$HOME/.zshrc" ]; then
-            echo "zshrc not found, creating and adding command now"
-            touch $HOME/.zshrc
-        else
+        if [ -f "$HOME/.zshrc" ]; then
             echo "Removing previous alias if it exists"
             sed -i -e '/alias start-bb-server/d' "$HOME/.zshrc"
-            echo "alias start-bb-server=\"$bb_command\"" >> $HOME/.bashrc
         fi
+        echo "alias start-bb-server=\"$bb_command\"" >> $HOME/.zshrc
     else
         echo "Checking for existing bashrc"
-        if ! [ -f "$HOME/.bashrc" ]; then
-            echo "bashrc not found, creating and adding command now"
-            touch $HOME/.bashrc
-        else
+        if [ -f "$HOME/.bashrc" ]; then
             echo "Removing previous alias if it exists"
             sed -i -e '/alias start-bb-server/d' "$HOME/.bashrc"
-            echo "alias start-bb-server=\"$bb_command\"" >> $HOME/.bashrc
         fi
+        echo "alias start-bb-server=\"$bb_command\"" >> $HOME/.bashrc
     fi
     alias start-bb-server="$bb_command"
 }
