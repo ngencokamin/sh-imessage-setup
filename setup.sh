@@ -1,4 +1,5 @@
 #!/bin/bash
+cd
 
 bk() {
     echo "Finding path to bbctl"
@@ -178,11 +179,11 @@ else
     fi
 fi
 
-if ! command -v xbrew &> /dev/null; then
+if ! command -v brew &> /dev/null; then
     read -r -p "Would you like to install brew? Brew is required to install tmux. tmux can be used to automatically launch the bridge without needing to keep the terminal window open [Y/n] " -n 1
     case "$REPLY" in
-        n|N ) echo "Alright, no worries"; install_brew=false;;
-        * ) echo "Cool, installing brew now. Follow the prompts"; /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"; install_brew=true;;
+        n|N ) echo "Alright, no worries"; 
+        * ) echo "Cool, installing brew now. Follow the prompts"; /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"; 
     esac
 fi
 
