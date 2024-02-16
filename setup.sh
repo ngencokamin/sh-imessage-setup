@@ -178,6 +178,14 @@ else
     fi
 fi
 
+if ! command -v xbrew &> /dev/null; then
+    read -r -p "Would you like to install brew? Brew is required to install tmux. tmux can be used to automatically launch the bridge without needing to keep the terminal window open [Y/n] " -n 1
+    case "$REPLY" in
+        n|N ) echo "Alright, no worries"; install_brew=false;;
+        * ) echo "Cool, installing brew now. Follow the prompts"; /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"; install_brew=true;;
+    esac
+fi
+
 if ! command -v tmux &> /dev/null; then
     read -r -p "Would you like to install tmux? It's optional, but it lets you start the bridge without needing to keep the terminal window open, so it's handy [Y/n] " -n 1
     case "$REPLY" in 
