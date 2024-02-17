@@ -179,23 +179,34 @@ else
     fi
 fi
 
-if ! command -v brew &> /dev/null; then
-    read -r -p "Would you like to install brew? Brew is required to install tmux. tmux can be used to automatically launch the bridge without needing to keep the terminal window open [Y/n] " -n 1
-    case "$REPLY" in
-        n|N ) echo "Alright, no worries"; 
-        * ) echo "Cool, installing brew now. Follow the prompts"; /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"; 
-    esac
-fi
-
 if ! command -v tmux &> /dev/null; then
     read -r -p "Would you like to install tmux? It's optional, but it lets you start the bridge without needing to keep the terminal window open, so it's handy [Y/n] " -n 1
-    case "$REPLY" in 
-        n|N ) echo "Alright, no worries"; use_tmux=false;;
-        * ) echo "Cool, installing tmux now"; brew install tmux; use_tmux=true;;
+    case "$REPLY" in
+        n|N )
+            echo "Alright, no worries"
+            use_tmux=false
+            ;;
+        * )
+            echo "Before installing tmux, checking to see if you have brew installed."
+            if ! command -v brew &> /dev/null; then
+                read -r -p "You need brew to install tmux, would you like to install that now? [Y/n] " -n 1
+            case "$REPLY" in
+                n|N )
+                    echo "Alright, no worries"
+                    ;;
+                * )
+                    echo "Cool, installing brew now. Follow the prompts"
+                    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+                    ;;
+            esac
+        fi
+            
+        brew install tmux;
+        use_tmux=true;;
     esac
 else
     read -r -p "Would you like to use tmux to run the bridge? It's optional, but it lets you start the bridge without needing to keep the terminal window open, so it's handy [Y/n] " -n 1
-    case "$REPLY" in 
+    case "$REPLY" in
         n|N ) echo "Alright, no worries"; use_tmux=false;;
         * ) echo "Okie dokie, using tmux"; use_tmux=true;;
     esac
