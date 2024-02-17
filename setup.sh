@@ -10,32 +10,27 @@ bk() {
 
 download() {
     echo "Getting OS"
-    [[ `uname -s` == "Linux" ]] && os_type="linux" || os_type="macos"
+    [[ $(uname -s) == "Linux" ]] && os_type="linux" || os_type="macos"
     echo "Getting archicture"
-    [[ `uname -p` == "arm" ]] && architecture="arm64" || architecture="amd64"
+    [[ $(uname -p) == "arm" ]] && architecture="arm64" || architecture="amd64"
     echo "Downloading latest executable"
     curl -L https://nightly.link/beeper/bridge-manager/workflows/go.yaml/main/bbctl-$os_type-$architecture.zip --output bbctl.zip
     unzip bbctl
+    chmod +x bbctl-$os_type-$architecture
     echo "Download successful! Installing now (this may ask for your password)"
     if $bbctl_path; then sudo rm $bbctl_path; fi
-    chmod +x bbctl-$os_type-$architecture
-    if [[ $architecture == 'arm' ]]; then
-        if ! [ -d /Users/Shared/bbctl ]; then
-            sudo mkdir /Users/Shared/bbctl
-        fi
-        sudo mv bbctl-$os_type-$architecture /Users/Shared/bbctl/bbctl
-        bbctl_path="/Users/Shared/bbctl/bbctl"
-    else
-        sudo mv bbctl-$os_type-$architecture /usr/local/bin/bbctl
-        bbctl_path="/usr/local/bin/bbctl"
+    if ! [ -d /usr/local/bin ]; then
+        sudo mkdir /usr/local/bin
     fi
+    sudo mv bbctl-$os_type-$architecture /usr/local/bin/bbctl
+    bbctl_path="/usr/local/bin/bbctl"
     echo "Making sure bbctl works"
-    if ! command -v bbctl &> /dev/null; then
+    if ! command -v bbctl &>/dev/null; then
         echo "bbctl command not found! Honestly idk why???? If you're on arm, pls ping @matchstick"
-    elif ! $(bbctl  &>/dev/null); then
+    elif ! $(bbctl &>/dev/null); then
         echo "bbctl missing permissions! Attempting to grant now!"
         sudo chmod +x $bbctl_path
-        if ! $(bbctl  &>/dev/null); then
+        if ! $(bbctl &>/dev/null); then
             echo "Still not working for some reason. I guess try this script again?"
             exit 0
         else
