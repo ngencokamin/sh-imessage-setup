@@ -179,7 +179,7 @@ else
     fi
 fi
 
-if ! command -v xtmux &> /dev/null; then
+if ! command -v tmux &> /dev/null; then
     read -r -p "Would you like to install tmux? It's optional, but it lets you start the bridge without needing to keep the terminal window open, so it's handy [Y/n] " -n 1
     case "$REPLY" in
         n|N )
@@ -188,7 +188,7 @@ if ! command -v xtmux &> /dev/null; then
             ;;
         * )
             echo "Checking to see if you have homebrew installed before attempting to install tmux."
-        if ! command -v xbrew &>/dev/null; then
+        if ! command -v brew &>/dev/null; then
             read -r -p "You need homebrew to install tmux, would you like to install that now? [Y/n] " -n 1
             case "$REPLY" in
             n | N)
