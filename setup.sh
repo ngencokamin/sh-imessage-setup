@@ -78,7 +78,8 @@ build_command() {
         * ) echo "Great!";;
     esac
     if $use_tmux; then
-        bb_command="tmux new-session -d -s bb-bridge bbctl run --param 'bluebubbles_url=$bb_url' --param 'bluebubbles_password=$bb_pass' --param 'imessage_platform=bluebubbles' sh-imessage"
+        bb_command="tmux new-session -d -s bb-bridge bbctl run --param 'bluebubbles_url=$bb_url' --param 'bluebubbles_password=$bb_pass' --param 'imessage_platform=bluebubbles' sh-imessage && tmux ls | grep -i 'bb-bridge'"
+        echo "To attach to a running tmux session, run the command \`tmux a -t bb-bridge\`"
         if $use_alias; then
             add_alias
         fi
