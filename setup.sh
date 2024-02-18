@@ -228,6 +228,6 @@ echo
 
 read -r -p "Looks like we're done here! Would you like to start the bridge now? [Y/n] " -n 1
     case "$REPLY" in 
-        n|N ) echo "Alright, sounds good! Have a nice day, and feel free to reach out to @matchstick in the iMessage bridge matrix room if you have any issues :)"; exit 0;;
+        n|N ) echo "Alright, sounds good! Have a nice day, and feel free to reach out to @matchstick in the iMessage bridge matrix room if you have any issues :)";;
         * ) echo "Alright, starting now! Have a nice day, and feel free to reach out to @matchstick in the iMessage bridge matrix room if you have any issues :)"; eval $bb_command;;
     esac
