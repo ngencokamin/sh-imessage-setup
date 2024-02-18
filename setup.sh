@@ -90,6 +90,7 @@ build_command() {
     fi
 }
 
+cd
 echo 'Checking if bbctl is currently installed'
 bbctl_name="$(compgen -c | grep -i 'bbctl')"
 if ! [[ -z "$bbctl_name" ]]; then
@@ -175,13 +176,36 @@ fi
 
 if ! command -v tmux &> /dev/null; then
     read -r -p "Would you like to install tmux? It's optional, but it lets you start the bridge without needing to keep the terminal window open, so it's handy [Y/n] " -n 1
-    case "$REPLY" in 
-        n|N ) echo "Alright, no worries"; use_tmux=false;;
-        * ) echo "Cool, installing tmux now"; brew install tmux; use_tmux=true;;
+    case "$REPLY" in
+        n|N )
+            echo "Alright, no worries"
+            use_tmux=false
+            ;;
+        * )
+            echo "Checking to see if you have homebrew installed before attempting to install tmux."
+        if ! command -v brew &>/dev/null; then
+            read -r -p "You need homebrew to install tmux, would you like to install that now? [Y/n] " -n 1
+            case "$REPLY" in
+            n | N)
+                echo "Alright, no worries. Cancelling tmux setup"
+                use_tmux=false
+                ;;
+            *)
+                echo "Cool, installing brew now. Please follow the prompts"
+                /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+                echo "Installing tmux"
+                brew install tmux
+                use_tmux=true
+                ;;
+            esac
+        else
+            brew install tmux
+            use_tmux=true
+        fi
     esac
 else
     read -r -p "Would you like to use tmux to run the bridge? It's optional, but it lets you start the bridge without needing to keep the terminal window open, so it's handy [Y/n] " -n 1
-    case "$REPLY" in 
+    case "$REPLY" in
         n|N ) echo "Alright, no worries"; use_tmux=false;;
         * ) echo "Okie dokie, using tmux"; use_tmux=true;;
     esac
