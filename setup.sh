@@ -1,5 +1,4 @@
 #!/bin/bash
-cd
 
 bk() {
     echo "Finding path to bbctl"
@@ -96,6 +95,7 @@ build_command() {
     fi
 }
 
+cd
 echo 'Checking if bbctl is currently installed'
 bbctl_name="$(compgen -c | grep -i 'bbctl')"
 if ! [[ -z "$bbctl_name" ]]; then
