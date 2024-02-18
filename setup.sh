@@ -187,22 +187,26 @@ if ! command -v tmux &> /dev/null; then
             use_tmux=false
             ;;
         * )
-            echo "Before installing tmux, checking to see if you have brew installed."
-            if ! command -v brew &> /dev/null; then
-                read -r -p "You need brew to install tmux, would you like to install that now? [Y/n] " -n 1
+            echo "Checking to see if you have homebrew installed before attempting to install tmux."
+        if ! command -v brew &>/dev/null; then
+            read -r -p "You need homebrew to install tmux, would you like to install that now? [Y/n] " -n 1
             case "$REPLY" in
-                n|N )
-                    echo "Alright, no worries"
-                    ;;
-                * )
-                    echo "Cool, installing brew now. Follow the prompts"
-                    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-                    ;;
+            n | N)
+                echo "Alright, no worries. Cancelling tmux setup"
+                use_tmux=false
+                ;;
+            *)
+                echo "Cool, installing brew now. Please follow the prompts"
+                /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+                echo "Installing tmux"
+                brew install tmux
+                use_tmux=true
+                ;;
             esac
+        else
+            brew install tmux
+            use_tmux=true
         fi
-            
-        brew install tmux;
-        use_tmux=true;;
     esac
 else
     read -r -p "Would you like to use tmux to run the bridge? It's optional, but it lets you start the bridge without needing to keep the terminal window open, so it's handy [Y/n] " -n 1
