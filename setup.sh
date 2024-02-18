@@ -227,6 +227,11 @@ echo
 
 read -r -p "Looks like we're done here! Would you like to start the bridge now? [Y/n] " -n 1
     case "$REPLY" in 
-        n|N ) echo "Alright, sounds good! Have a nice day, and feel free to reach out to @matchstick in the iMessage bridge matrix room if you have any issues :)";;
-        * ) echo "Alright, starting now! Have a nice day, and feel free to reach out to @matchstick in the iMessage bridge matrix room if you have any issues :)"; eval $bb_command;;
+        n|N ) echo "Alright, sounds good! Have a nice day, and feel free to reach out to @matchstick in the iMessage bridge matrix room if you have any issues :)"; exit 0;;
+        * ) echo "Alright, starting now! Have a nice day, and feel free to reach out to @matchstick in the iMessage bridge matrix room if you have any issues :)"; eval $bb_commands;;
     esac
+
+if $use_tmux; then
+    echo "Started session! If you want to open the session, run tmux a -t bb-bridge"
+    tmux ls | grep -i 'bb-bridge'
+fi
