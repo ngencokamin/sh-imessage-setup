@@ -3,7 +3,17 @@ Script to setup or upgrade [sh-imessage](https://github.com/mautrix/imessage) Be
 
 ### Prerequisites
 
-This method requires you have a Mac that can remain always on. It also requires that you have the BlueBubbles Server set up on said Mac. Note that some BlueBubbles features require MacOS version Ventura or higher. Ventura is recommended, as it has all current iMessage features, and some users have reported issues with Find My on Sonoma.
+
+##### Required
+
+- A computer running MacOS which will be left always running with the following software:
+ 	- MacOS Catalina minimum, Ventura recommended (more recent versions enable more features, reference the [BlueBubbles documentation](https://docs.bluebubbles.app/server#supported-mac-devices)).
+ 	- [BlueBubbles Server](https://github.com/BlueBubblesApp/bluebubbles-server/releases/latest) installed and running.
+
+##### Optional
+- [tmux](https://github.com/tmux/tmux?tab=readme-ov-file#installation)
+  - This is not *required* to use this script, but provides additional benefits in launching the bridge post-install.
+
 
 #### Upgrade Unsupported Mac
 
