@@ -4,6 +4,32 @@ BBCTL_URL="https://nightly.link/beeper/bridge-manager/workflows/go.yaml/main/bbc
 DEFAULT_BB_URL="http://localhost:1234"
 BBCTL_PATH="/usr/local/bin/bbctl"
 
+# Function to install Xcode command line tools
+install_xcode_tools() {
+    echo "Checking for Xcode command line tools"
+    if ! xcode-select -p 1>/dev/null; then
+        echo "Xcode command line tools not found. Installing now. If you see a popup asking to install, please click 'Install' and then come back here."
+        xcode-select --install
+        until xcode-select -p 1>/dev/null; do
+            sleep 5
+        done
+        echo "Xcode command line tools installed"
+    else
+        echo "Xcode command line tools already installed"
+    fi
+}
+# Function to check macOS version
+check_macos_version() {
+    echo "Checking macOS version"
+    macos_version=$(sw_vers -productVersion)
+    required_version="12.0.0" # Replace with the required version for Ventura
+
+    if [[ $(printf '%s\n' "$required_version" "$macos_version" | sort -V | head -n1) != "$required_version" ]]; then
+        echo "Your macOS version is $macos_version. BlueBubbles works best on macOS Ventura (version $required_version) and up. It is recommended to upgrade your macOS version."
+    else
+        echo "macOS version is $macos_version. Good to go!"
+    fi
+}
 # Function to backup bbctl
 backup_bbctl() {
     echo "Finding path to bbctl"
@@ -106,6 +132,19 @@ build_command() {
         if "${use_alias}"; then
             add_alias
         fi
+    fi
+}
+
+# Function to ping the BlueBubbles server
+ping_bluebubbles_server() {
+    echo "Pinging BlueBubbles server at ${bb_url}"
+    response=$(curl -s -o /dev/null -w "%{http_code}" "${bb_url}/api/v1/ping?password=${bb_pass}")
+
+    if [ "$response" -eq 200 ]; then
+        echo "BlueBubbles server is running and responding to requests"
+    else
+        echo "BlueBubbles server is not responding. Please make sure it's running and try again"
+        exit 1
     fi
 }
 
@@ -278,6 +317,10 @@ esac
 
 build_command
 create_cron_job
+install_xcode_tools
+check_macos_version
+ping_bluebubbles_server
+
 
 echo "Command created! You can now start your bridge by opening a new terminal window and running the following command!"
 if "${use_alias}"; then echo "start-bb-server"; else echo "${bb_command}"; fi
