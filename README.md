@@ -2,7 +2,13 @@
 Script to setup or upgrade [sh-imessage](https://github.com/mautrix/imessage) Beeper bridge with BlueBubbles connector
 
 ### Prerequisites
+Brew: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
+Xcode CLI Tools: xcode-select --install 
+
+Blue Bubbles Server setup and running: brew install --cask bluebubbles or https://github.com/BlueBubblesApp/bluebubbles-server/releases/latest
+
+### Installation
 
 ##### Required
 
@@ -33,7 +39,41 @@ For initial BlueBubbles setup, see [this guide](https://bluebubbles.app/install/
 
 ### Automating Startup
 
-At this time, this script does not include support for setting the bridge to run automatically when the Mac is rebooted. If you don't want to re-run with the command this script provides each time, follow [this guide](https://rentry.org/bb2hcep6) to create a launchd service, or [this guide](https://rentry.org/bb-cron) to set it up with cron.
+The setup script includes a function, `create_cron_job`, which automates the startup of the Bridge script. This function creates a new bash script, `check_and_run.sh`, that checks if the `bbctl` process is running. If it's not, the script sources the `~/.bashrc` file and starts the server using the `start-bb-server` command.
+
+The `create_cron_job` function also adds a new job to the crontab to run `check_and_run.sh` at system startup and every hour thereafter. This ensures that if the Bridge script encounters an issue and stops running, it will automatically restart. The cron job is set up as follows:
+
+- At system reboot, the `check_and_run.sh` script is executed.
+- Every hour, on the hour, the `check_and_run.sh` script is executed again.
+
+This self-recovery mechanism ensures the continuous operation of the Bridge script.
+
+### Fuction by Function breakdown:
+
+Functions
+install_xcode_tools()
+This function checks if Xcode command line tools are installed on the system. If not, it installs them. This is necessary for some of the operations in the script.
+
+check_macos_version()
+This function checks the version of macOS on the system. If the version is less than the required version for BlueBubbles, it recommends the user to upgrade their macOS version.
+
+backup_bbctl()
+This function finds the path to the bbctl binary, if it exists, and backs it up to the home directory as bbctl.bak.
+
+download_bbctl()
+This function downloads the latest bbctl binary for the system's OS and architecture, unzips it, makes it executable, and moves it to /usr/local/bin. It also checks if the bbctl command works after installation.
+
+add_alias()
+This function adds an alias to the user's shell (either .zshrc or .bashrc) to start the BlueBubbles server. The alias is start-bb-server.
+
+build_command()
+This function builds the command to start the BlueBubbles server. It asks the user for their BlueBubbles URL and password, and builds the command accordingly. If the user chooses to use tmux, it includes tmux in the command.
+
+ping_bluebubbles_server()
+This function pings the BlueBubbles server at the provided URL to check if it's running and responding to requests.
+
+create_cron_job()
+This function creates a cron job that checks if the bbctl process is running at system startup and every hour thereafter. If it's not running, it starts it. This ensures that the server will automatically restart if it stops for any reason.
 
 ### Credits
 
@@ -45,3 +85,6 @@ None of this would be possible without the recent hard work of Donovon Simpson a
 - Donovon Simpson: https://www.buymeacoffee.com/trek.boldly.go or https://github.com/sponsors/trek-boldly-go
 - BlueBubbles Team: https://bluebubbles.app/donate
 - Christian Nuss: https://github.com/cnuss (awaiting sponsor link)
+- Cameron Aaron: https://www.buymeacoffee.com/cameronaaron or 
+https://github.com/sponsors/cameronaaron
+
