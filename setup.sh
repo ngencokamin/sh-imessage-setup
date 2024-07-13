@@ -18,6 +18,7 @@ install_xcode_tools() {
         echo "Xcode command line tools already installed"
     fi
 }
+
 # Function to check macOS version
 check_macos_version() {
     echo "Checking macOS version"
@@ -30,6 +31,7 @@ check_macos_version() {
         echo "macOS version is $macos_version. Good to go!"
     fi
 }
+
 # Function to backup bbctl
 backup_bbctl() {
     echo "Finding path to bbctl"
@@ -47,7 +49,7 @@ download_bbctl() {
     [[ $(uname -p) = "arm" ]] && architecture="arm64" || architecture="amd64"
     echo "Downloading latest executable"
     curl -L ${BBCTL_URL}-${os_type}-${architecture}.zip --output bbctl.zip
-    unzip bbctl
+    unzip bbctl.zip
     chmod +x bbctl-${os_type}-${architecture}
     echo "Download successful! Installing now (this may ask for your password)"
     if [ -n "${bbctl_path}" ]; then sudo rm "${bbctl_path}"; fi
@@ -132,19 +134,6 @@ build_command() {
         if "${use_alias}"; then
             add_alias
         fi
-    fi
-}
-
-# Function to ping the BlueBubbles server
-ping_bluebubbles_server() {
-    echo "Pinging BlueBubbles server at ${bb_url}"
-    response=$(curl -s -o /dev/null -w "%{http_code}" "${bb_url}/api/v1/ping?password=${bb_pass}")
-
-    if [ "$response" -eq 200 ]; then
-        echo "BlueBubbles server is running and responding to requests"
-    else
-        echo "BlueBubbles server is not responding. Please make sure it's running and try again"
-        exit 1
     fi
 }
 
@@ -319,8 +308,6 @@ build_command
 create_cron_job
 install_xcode_tools
 check_macos_version
-ping_bluebubbles_server
-
 
 echo "Command created! You can now start your bridge by opening a new terminal window and running the following command!"
 if "${use_alias}"; then echo "start-bb-server"; else echo "${bb_command}"; fi
