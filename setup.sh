@@ -139,24 +139,42 @@ build_command() {
 
 # Function to create the cron job
 create_cron_job() {
+    # Check shell and set config file accordingly
+    echo "Checking user shell"
+    if [[ "${SHELL}" = *"zsh" ]]; then
+        echo "zsh detected, sourcing $HOME/.zshrc"
+        file="$HOME/.zshrc"
+    elif [[ "${SHELL}" = *"bash" ]]; then
+        echo "bash detected, sourcing $HOME/.bashrc"
+        file="$HOME/.bashrc"
+    fi
+    # Check if alias exists
+    if [ "$use_alias" = true ]; then
+        bridge_start_cmd="source $file\n        start-bb-server"
+    else
+        bridge_start_cmd="$bb_command"
+    fi
     # Create a new script that checks if the process is running and if not, it starts it
-    echo '#!/bin/bash
+    echo "Creating script to automatically start the bridge if it isn't running"
+    echo "#!/bin/bash
 
-    if ! pgrep -f "bbctl" > /dev/null
+    if ! pgrep -f 'bbctl' > /dev/null
     then
-        source ~/.bashrc
-        start-bb-server
-    fi' >~/check_and_run.sh
+        $bridge_start_cmd
+    fi" >~/check_and_run.sh
 
     # Make the script executable
     chmod +x ~/check_and_run.sh
 
     # Open the crontab file and add the job
+    echo "Adding job to crontab dile"
     (
         crontab -l 2>/dev/null
         echo "@reboot ~/check_and_run.sh
     0 * * * * ~/check_and_run.sh"
     ) | crontab -
+    
+    echo "Done!"
 }
 
 # Check if bbctl is installed
@@ -305,7 +323,6 @@ n | N)
 esac
 
 build_command
-create_cron_job
 install_xcode_tools
 check_macos_version
 
@@ -313,6 +330,17 @@ echo "Command created! You can now start your bridge by opening a new terminal w
 if "${use_alias}"; then echo "start-bb-server"; else echo "${bb_command}"; fi
 
 echo
+
+read -r -p "Would you like me to set up a cron job to launch this script automatically? [Y/n] " -n 1
+case "$REPLY" in
+n | N)
+    echo "Alright, sounds good!"
+    ;;
+*)
+    echo "Okie dokie, setting that up now!"
+    create_cron_job
+    ;;
+esac
 
 read -r -p "Looks like we're done here! Would you like to start the bridge now? [Y/n] " -n 1
 case "$REPLY" in
