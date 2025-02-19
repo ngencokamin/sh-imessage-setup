@@ -139,29 +139,14 @@ build_command() {
 
 # Function to create the cron job
 create_cron_job() {
-    # Check shell and set config file accordingly
-    echo "Checking user shell"
-    if [[ "${SHELL}" = *"zsh" ]]; then
-        echo "zsh detected, sourcing ~/.zshrc"
-        file="$HOME/.zshrc"
-    elif [[ "${SHELL}" = *"bash" ]]; then
-        echo "bash detected, sourcing ~/.bashrc"
-        file="$HOME/.bashrc"
-    fi
-    # Check if alias exists
-    if [ "$use_alias" = true ]; then
-        bridge_start_cmd="source $file
-        start-bb-server"
-    else
-        bridge_start_cmd="$bb_command"
-    fi
+    
     # Create a new script that checks if the process is running and if not, it starts it
     echo "Creating script to automatically start the bridge if it isn't running"
     echo "#!/bin/bash
 
-    if ! pgrep -f 'bbctl' > /dev/null
+    if ! bbctl whoami | grep -i 'sh-imessage.*RUNNING' > /dev/null;
     then
-        $bridge_start_cmd
+        $bb_command
     fi" > $HOME/check_and_run.sh
 
     # Make the script executable
