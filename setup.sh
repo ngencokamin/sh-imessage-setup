@@ -150,7 +150,8 @@ create_cron_job() {
     fi
     # Check if alias exists
     if [ "$use_alias" = true ]; then
-        bridge_start_cmd="source $file\n        start-bb-server"
+        bridge_start_cmd="source $file
+        start-bb-server"
     else
         bridge_start_cmd="$bb_command"
     fi
