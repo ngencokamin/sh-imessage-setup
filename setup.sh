@@ -144,7 +144,7 @@ create_cron_job() {
     echo "Creating script to automatically start the bridge if it isn't running"
     echo "#!/bin/bash
 
-    if ! bbctl whoami | grep -i 'sh-imessage.*RUNNING' > /dev/null;
+    if ! pgrep -f 'bbctl.*sh-imessage' > /dev/null;
     then
         $bb_command
     fi" > $HOME/check_and_run.sh
