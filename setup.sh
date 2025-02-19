@@ -142,10 +142,10 @@ create_cron_job() {
     # Check shell and set config file accordingly
     echo "Checking user shell"
     if [[ "${SHELL}" = *"zsh" ]]; then
-        echo "zsh detected, sourcing $HOME/.zshrc"
+        echo "zsh detected, sourcing ~/.zshrc"
         file="$HOME/.zshrc"
     elif [[ "${SHELL}" = *"bash" ]]; then
-        echo "bash detected, sourcing $HOME/.bashrc"
+        echo "bash detected, sourcing ~/.bashrc"
         file="$HOME/.bashrc"
     fi
     # Check if alias exists
@@ -161,17 +161,17 @@ create_cron_job() {
     if ! pgrep -f 'bbctl' > /dev/null
     then
         $bridge_start_cmd
-    fi" >~/check_and_run.sh
+    fi" > $HOME/check_and_run.sh
 
     # Make the script executable
-    chmod +x ~/check_and_run.sh
+    chmod +x $HOME/check_and_run.sh
 
     # Open the crontab file and add the job
-    echo "Adding job to crontab dile"
+    echo "Adding job to crontab file"
     (
-        crontab -l 2>/dev/null
-        echo "@reboot ~/check_and_run.sh
-    0 * * * * ~/check_and_run.sh"
+        crontab -l 2>/dev/null;
+        echo "@reboot $HOME/check_and_run.sh
+    0 * * * * $HOME/check_and_run.sh"
     ) | crontab -
     
     echo "Done!"
