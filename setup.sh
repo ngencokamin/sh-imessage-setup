@@ -24,7 +24,7 @@ check_macos_version() {
     echo "Checking macOS version"
     macos_version=$(sw_vers -productVersion)
     required_version="12.0.0" # Replace with the required version for Ventura
-
+    
     if [[ $(printf '%s\n' "$required_version" "$macos_version" | sort -V | head -n1) != "$required_version" ]]; then
         echo "Your macOS version is $macos_version. BlueBubbles works best on macOS Ventura (version $required_version) and up. It is recommended to upgrade your macOS version."
     else
@@ -61,7 +61,7 @@ download_bbctl() {
     echo "Making sure bbctl works"
     if ! command -v bbctl >/dev/null 2>&1; then
         echo "bbctl command not found! Please check the installation."
-    elif ! $(bbctl >/dev/null 2>&1); then
+        elif ! $(bbctl >/dev/null 2>&1); then
         echo "bbctl missing permissions! Attempting to grant now!"
         sudo chmod +x "${bbctl_path}"
         if ! $(bbctl >/dev/null 2>&1); then
@@ -100,13 +100,13 @@ build_command() {
     echo
     read -r -p "Use default BlueBubbles URL '${DEFAULT_BB_URL}'? (correct option for most users) [Y/n] " -n 1
     case "$REPLY" in
-    n | N)
-        echo
-        read -p "Please enter your BlueBubbles URL: " bb_url
+        n | N)
+            echo
+            read -p "Please enter your BlueBubbles URL: " bb_url
         ;;
-    *)
-        echo "Using default URL"
-        bb_url=${DEFAULT_BB_URL}
+        *)
+            echo "Using default URL"
+            bb_url=${DEFAULT_BB_URL}
         ;;
     esac
     read -p "Please enter your BlueBubbles password: " bb_pass
@@ -116,12 +116,12 @@ build_command() {
     echo "BlueBubbles Password: ${bb_pass}"
     read -r -p "Does that look correct? [Y/n] " -n 1
     case "$REPLY" in
-    n | N)
-        echo
-        echo "Alright, let's try this again"
-        build_command
+        n | N)
+            echo
+            echo "Alright, let's try this again"
+            build_command
         ;;
-    *) echo "Great!" ;;
+        *) echo "Great!" ;;
     esac
     if "${use_tmux}"; then
         bb_command="tmux new-session -d -s bb-bridge bbctl run --param 'bluebubbles_url=${bb_url}' --param 'bluebubbles_password=${bb_pass}' --param 'imessage_platform=bluebubbles' sh-imessage && tmux ls | grep -i 'bb-bridge'"
@@ -137,6 +137,52 @@ build_command() {
     fi
 }
 
+# Function to create launchd agent
+create_launchd_agent() {
+    echo "Generating laund plist"
+    cat > com.beeper.bridgemanager.imessage.plist << EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+    <dict>
+        <key>KeepAlive</key>
+        <dict>
+            <key>Crashed</key>
+            <true />
+        </dict>
+        <key>Label</key>
+        <string>com.beeper.bridgemanager.imessage</string>
+        <key>ProgramArguments</key>
+        <array>
+            <string>sh</string>
+            <string>-c</string>
+            <string>$bb_command</string>
+        </array>
+        <key>RunAtLoad</key>
+        <true />
+        <key>StandardErrorPath</key>
+        <string>/Users/Shared/errors.log</string>
+        <key>StandardOutPath</key>
+        <string>/Users/Shared/out.log</string>
+        <key>WorkingDirectory</key>
+        <string>/Users/Shared</string>
+        <key>EnvironmentVariables</key>
+            <dict>
+                <key>PATH</key>
+                <string>/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+            </dict>
+    </dict>
+</plist>
+EOF
+    echo "Moving launchd plist to local user LaunchAgent folder"
+    mv com.beeper.bridgemanager.imessage.plist ~/Library/LaunchAgents/com.beeper.bridgemanager.imessage.plist
+    
+    echo "Starting launch agent"
+    launchctl load -w ~/Library/LaunchAgents/com.beeper.bridgemanager.imessage.plist
+    
+    echo "Bridge should be starting now. If you have any issues, logs can be found at  /Users/Shared/out.log and /Users/Shared/errors.log"
+}
+
 # Check if bbctl is installed
 cd
 echo 'Checking if bbctl is currently installed'
@@ -145,12 +191,12 @@ if ! [[ -z "${bbctl_name}" ]]; then
     echo 'bbctl found!'
     read -r -p "Re-install/update bbctl? (I honestly have no way to check if you're on latest) [Y/n] " -n 1
     case "$REPLY" in
-    n | N)
-        echo
-        echo "Alright, no worries"
-        exit 0
+        n | N)
+            echo
+            echo "Alright, no worries"
+            exit 0
         ;;
-    *) echo "Proceeding" ;;
+        *) echo "Proceeding" ;;
     esac
     backup_bbctl
     logged_in="$(bbctl w 2>&1)"
@@ -164,12 +210,12 @@ if ! [[ -z "${bbctl_name}" ]]; then
             if [[ "${running}" = *"RUNNING"* ]]; then
                 read -r -p "The process must be killed to proceed. Can I do that for you? [Y/n] " -n 1
                 case "$REPLY" in
-                n | N)
-                    echo
-                    echo "Alright, exiting the script"
-                    exit 0
+                    n | N)
+                        echo
+                        echo "Alright, exiting the script"
+                        exit 0
                     ;;
-                *) echo "Finding bridge process" ;;
+                    *) echo "Finding bridge process" ;;
                 esac
                 bridge_ps="$(pgrep 'bbctl')"
                 echo "Shutting down bridge"
@@ -183,19 +229,19 @@ if ! [[ -z "${bbctl_name}" ]]; then
             fi
             read -r -p "Some updates (such as the contact fix from 2/13/24) require creating a fresh bridge. Delete bridge now? [Y/n] " -n 1
             case "$REPLY" in
-            n | N)
-                echo
-                echo "Alright, no worries"
+                n | N)
+                    echo
+                    echo "Alright, no worries"
                 ;;
-            *)
-                echo "Alright, deleting bridge"
-                bbctl delete sh-imessage
+                *)
+                    echo "Alright, deleting bridge"
+                    bbctl delete sh-imessage
                 ;;
             esac
         else
             echo "No existing iMessage bridge found"
         fi
-
+        
     else
         echo "No login found! Please follow the next steps to log in"
         bbctl login
@@ -205,13 +251,13 @@ if ! [[ -z "${bbctl_name}" ]]; then
         if ! [[ -z "${bridge_exists}" ]]; then
             read -r -p "Some updates (such as the contact fix from 2/13/24) require creating a fresh bridge. Delete bridge now? [Y/n] " -n 1
             case "$REPLY" in
-            n | N)
-                echo
-                echo "Alright, no worries"
+                n | N)
+                    echo
+                    echo "Alright, no worries"
                 ;;
-            *)
-                echo "Alright, deleting bridge"
-                bbctl delete sh-imessage
+                *)
+                    echo "Alright, deleting bridge"
+                    bbctl delete sh-imessage
                 ;;
             esac
         else
@@ -222,12 +268,12 @@ if ! [[ -z "${bbctl_name}" ]]; then
 else
     read -r -p "bbctl not found in path! Install now? [Y/n] " -n 1
     case "$REPLY" in
-    n | N)
-        echo
-        echo "Alright, no worries"
-        exit 0
+        n | N)
+            echo
+            echo "Alright, no worries"
+            exit 0
         ;;
-    *) echo "Proceeding" ;;
+        *) echo "Proceeding" ;;
     esac
     download_bbctl
     logged_in="$(bbctl w 2>&1)"
@@ -240,13 +286,13 @@ else
     if ! [[ -z "${bridge_exists}" ]]; then
         read -r -p "Some updates (such as the contact fix from 2/13/24) require creating a fresh bridge. Delete bridge now? [Y/n] " -n 1
         case "$REPLY" in
-        n | N)
-            echo
-            echo "Alright, no worries"
+            n | N)
+                echo
+                echo "Alright, no worries"
             ;;
-        *)
-            echo "Alright, deleting bridge"
-            bbctl delete sh-imessage
+            *)
+                echo "Alright, deleting bridge"
+                bbctl delete sh-imessage
             ;;
         esac
     fi
@@ -256,13 +302,13 @@ fi
 if command -v tmux >/dev/null 2>&1; then
     read -r -p "Would you like to use tmux to run the bridge? It's optional, but it lets you start the bridge without needing to keep the terminal window open, so it's handy [Y/n] " -n 1
     case "$REPLY" in
-    n | N)
-        echo "Alright, no worries"
-        use_tmux=false
+        n | N)
+            echo "Alright, no worries"
+            use_tmux=false
         ;;
-    *)
-        echo "Okie dokie, using tmux"
-        use_tmux=true
+        *)
+            echo "Okie dokie, using tmux"
+            use_tmux=true
         ;;
     esac
 else
@@ -271,14 +317,14 @@ fi
 
 read -r -p "Would you like to add an alias to your shell to be able to start the bridge by simply running \`start-bb-server\` instead of specifying parameters each time? [Y/n] " -n 1
 case "$REPLY" in
-n | N)
-    echo "Alright, sounds good!"
-    use_alias=false
-    echo "Time to create your run command"
+    n | N)
+        echo "Alright, sounds good!"
+        use_alias=false
+        echo "Time to create your run command"
     ;;
-*)
-    echo "Okie dokie, setting that up now!"
-    use_alias=true
+    *)
+        echo "Okie dokie, setting that up now!"
+        use_alias=true
     ;;
 esac
 
@@ -291,11 +337,27 @@ if "${use_alias}"; then echo "start-bb-server"; else echo "${bb_command}"; fi
 
 echo
 
-read -r -p "Looks like we're done here! Would you like to start the bridge now? [Y/n] " -n 1
+read -r -p "Would you like to set up a launchd agent to start up the bridge automatically on login? [Y/n] " -n 1
 case "$REPLY" in
-n | N) echo "Alright, sounds good! Have a nice day, and feel free to reach out to @matchstick in the iMessage bridge matrix room if you have any issues :)" ;;
-*)
-    echo "Alright, starting now! Have a nice day, and feel free to reach out to @matchstick in the iMessage bridge matrix room if you have any issues :)"
-    eval "${bb_command}"
+    n | N)
+        echo "Alright, sounds good!"
+        echo
+        read -r -p "Looks like we're done here! Would you like to start the bridge now? [Y/n] " -n 1
+        case "$REPLY" in
+            n | N) echo "Alright, sounds good! Have a nice day, and feel free to reach out to @matchstick in the iMessage bridge matrix room if you have any issues :)" ;;
+            *)
+                echo "Alright, starting now! Have a nice day, and feel free to reach out to @matchstick in the iMessage bridge matrix room if you have any issues :)"
+                eval "${bb_command}"
+            ;;
+        esac
+    ;;
+    *)
+        echo "Okie dokie, setting that up now!"
+        create_launchd_agent
+        echo "Have a nice day, and feel free to reach out to @matchstick in the iMessage bridge matrix room if you have any issues :)"
     ;;
 esac
+
+echo
+
+
