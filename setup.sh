@@ -137,28 +137,6 @@ build_command() {
     fi
 }
 
-# Function to create the cron job
-create_cron_job() {
-    # Create a new script that checks if the process is running and if not, it starts it
-    echo '#!/bin/bash
-
-    if ! pgrep -f "bbctl" > /dev/null
-    then
-        source ~/.bashrc
-        start-bb-server
-    fi' >~/check_and_run.sh
-
-    # Make the script executable
-    chmod +x ~/check_and_run.sh
-
-    # Open the crontab file and add the job
-    (
-        crontab -l 2>/dev/null
-        echo "@reboot ~/check_and_run.sh
-    0 * * * * ~/check_and_run.sh"
-    ) | crontab -
-}
-
 # Check if bbctl is installed
 cd
 echo 'Checking if bbctl is currently installed'
@@ -305,7 +283,6 @@ n | N)
 esac
 
 build_command
-create_cron_job
 install_xcode_tools
 check_macos_version
 
