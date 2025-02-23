@@ -180,7 +180,7 @@ EOF
     echo "Starting launch agent"
     launchctl load -w ~/Library/LaunchAgents/com.beeper.bridgemanager.imessage.plist
     
-    echo "Bridge should be starting now. If you have any issues, logs can be found at  /Users/Shared/out.log and /Users/Shared/errors.log"
+    echo "Bridge should be starting now. If you have any issues, logs can be found at /Users/Shared/out.log and /Users/Shared/errors.log"
 }
 
 # Check if bbctl is installed
