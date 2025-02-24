@@ -155,7 +155,7 @@ create_launchd_agent() {
 
     # Move created plist
     echo "Moving launchd plist to local user LaunchAgent folder"
-    mv $helper_dir/com.beeper.bridgemanager.imessage.plist ~/Library/LaunchAgents/com.beeper.bridgemanager.imessage.plist
+    mv $helper_dir/com.beeper.bridgemanager.imessage.plist ~/Library/LaunchAgents
     
     # Start created plist
     echo "Starting launch agent"
