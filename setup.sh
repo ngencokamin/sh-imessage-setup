@@ -140,47 +140,28 @@ build_command() {
 # Function to create launchd agent
 create_launchd_agent() {
     echo "Generating laund plist"
-    cat > com.beeper.bridgemanager.imessage.plist << EOF
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-    <dict>
-        <key>KeepAlive</key>
-        <dict>
-            <key>Crashed</key>
-            <true />
-        </dict>
-        <key>Label</key>
-        <string>com.beeper.bridgemanager.imessage</string>
-        <key>ProgramArguments</key>
-        <array>
-            <string>sh</string>
-            <string>-c</string>
-            <string>$bb_command</string>
-        </array>
-        <key>RunAtLoad</key>
-        <true />
-        <key>StandardErrorPath</key>
-        <string>/Users/Shared/errors.log</string>
-        <key>StandardOutPath</key>
-        <string>/Users/Shared/out.log</string>
-        <key>WorkingDirectory</key>
-        <string>/Users/Shared</string>
-        <key>EnvironmentVariables</key>
-            <dict>
-                <key>PATH</key>
-                <string>/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
-            </dict>
-    </dict>
-</plist>
-EOF
-    echo "Moving launchd plist to local user LaunchAgent folder"
-    mv com.beeper.bridgemanager.imessage.plist ~/Library/LaunchAgents/com.beeper.bridgemanager.imessage.plist
+    # Get path of helper script
+    current_dir=$(dirname "$(realpath $0)")
+    helper_dir="$current_dir/helpers"
     
+    # Create new plist with command and name for process substituted
+    sed -e "s}_PLACEHOLDER_}$bb_command}g" -e "s}_NAME_}$(id -un)}g" $helper_dir/template.plist > $helper_dir/com.beeper.bridgemanager.imessage.plist
+    
+    # Create user LaunchAgents folder if it doesn't exist
+    if ! [ -d ~/Library/LaunchAgents ]; then
+        echo "Creating user LaunchAgents directory"
+        mkdir ~/Library/LaunchAgents
+    fi
+
+    # Move created plist
+    echo "Moving launchd plist to local user LaunchAgent folder"
+    mv $helper_dir/com.beeper.bridgemanager.imessage.plist ~/Library/LaunchAgents/com.beeper.bridgemanager.imessage.plist
+    
+    # Start created plist
     echo "Starting launch agent"
     launchctl load -w ~/Library/LaunchAgents/com.beeper.bridgemanager.imessage.plist
     
-    echo "Bridge should be starting now. If you have any issues, logs can be found at /Users/Shared/out.log and /Users/Shared/errors.log"
+    echo "Bridge should be starting now. If you have any issues, logs can be found at /tmp/bb-bridge.out and /tmp/bb-bridge.err"
 }
 
 # Check if bbctl is installed

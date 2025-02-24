@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <!-- A unique label for your job -->
+    <key>Label</key>
+    <string>com._NAME_.bb-bridge</string>
+
+    <!-- The command to execute: run your command via bash -->
+    <key>ProgramArguments</key>
+    <array>
+      <string>/bin/bash</string>
+      <string>-c</string>
+      <string>_PLACEHOLDER_</string>
+    </array>
+
+    <!-- Ensure the command runs when the agent loads -->
+    <key>RunAtLoad</key>
+    <true />
+
+    <!-- Optional: Keep the process running if it exits -->
+    <key>KeepAlive</key>
+    <true />
+
+    <!-- Optional: Set environment variables if needed (e.g., to ensure the PATH includes tmux's
+    location) -->
+    <key>EnvironmentVariables</key>
+    <dict>
+      <key>PATH</key>
+      <string>/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    </dict>
+
+    <!-- Optional: Log output and errors -->
+    <key>StandardOutPath</key>
+    <string>/tmp/bb-bridge.out</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/bb-bridge.err</string>
+  </dict>
+</plist>
