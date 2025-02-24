@@ -162,7 +162,6 @@ create_launchd_agent() {
 }
 
 # Check if bbctl is installed
-cd
 echo 'Checking if bbctl is currently installed'
 bbctl_name="$(compgen -c | grep -i 'bbctl')"
 if ! [[ -z "${bbctl_name}" ]]; then
