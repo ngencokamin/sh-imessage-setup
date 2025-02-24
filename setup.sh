@@ -139,13 +139,10 @@ build_command() {
 
 # Function to create launchd agent
 create_launchd_agent() {
-    echo "Generating laund plist"
-    # Get path of helper script
-    current_dir=$(dirname "$(realpath $0)")
-    helper_dir="$current_dir/helpers"
-    
+
     # Create new plist with command and name for process substituted
-    sed -e "s}_PLACEHOLDER_}$bb_command}g" -e "s}_NAME_}$(id -un)}g" $helper_dir/template.plist > $helper_dir/com.beeper.bridgemanager.imessage.plist
+    echo "Generating launchd plist"
+    sed -e "s}_PLACEHOLDER_}$bb_command}g" -e "s}_NAME_}$(id -un)}g" helpers/template.plist > helpers/com.beeper.bridgemanager.imessage.plist
     
     # Create user LaunchAgents folder if it doesn't exist
     if ! [ -d ~/Library/LaunchAgents ]; then
@@ -155,7 +152,7 @@ create_launchd_agent() {
 
     # Move created plist
     echo "Moving launchd plist to local user LaunchAgent folder"
-    mv $helper_dir/com.beeper.bridgemanager.imessage.plist ~/Library/LaunchAgents
+    mv helpers/com.beeper.bridgemanager.imessage.plist ~/Library/LaunchAgents
     
     # Start created plist
     echo "Starting launch agent"
