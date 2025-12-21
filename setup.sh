@@ -109,11 +109,25 @@ build_command() {
         bb_url=${DEFAULT_BB_URL}
         ;;
     esac
-    read -p "Please enter your BlueBubbles password: " bb_pass
-    echo
+
+    while true; do
+        echo "Please enter your BlueBubbles password: "
+        read -s bb_pass
+        echo
+        echo "Please reenter your BlueBubbles password: "
+        read -s bb_pass_confirm
+        echo
+        if [ "${bb_pass}" != "${bb_pass_confirm}" ]; then
+            echo "Passwords do not match. Please try again."
+            echo
+        else
+            break
+        fi
+    done
+    
     echo "This is what I've got:"
     echo "BlueBubbles URL: ${bb_url}"
-    echo "BlueBubbles Password: ${bb_pass}"
+    echo "BlueBubbles Password: ${bb_pass//?/*}"
     read -r -p "Does that look correct? [Y/n] " -n 1
     case "$REPLY" in
     n | N)
