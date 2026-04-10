@@ -44,11 +44,11 @@ bash uninstall.sh
 ### What the script does
 
 1. **Checks prerequisites** — BlueBubbles on port 1234, Tailscale connected, Homebrew present
-2. **Installs `bbctl`** (Beeper Bridge Manager) to `~/.local/bin/` — auto-selects Apple Silicon or Intel binary
+2. **Installs `bbctl`** (Beeper Bridge Manager) to `~/.local/bin/` — downloads from nightly.link, auto-selects Apple Silicon (`arm64`) or Intel (`amd64`), clears Gatekeeper quarantine
 3. **Logs in to Beeper** via `bbctl login` (browser popup; skipped if already authenticated)
-4. **Configures Tailscale Serve** — exposes `https://<machine>.<tailnet>.ts.net` → `localhost:1234` (HTTPS, tailnet-only, no port forwarding)
-5. **Prompts for your BlueBubbles password** and saves it to `~/.config/bb-beeper/config.env` (chmod 600)
-6. **Generates a bridge runner script** at `~/.config/bb-beeper/run-bridge.sh`
+4. **Configures Tailscale Serve** — exposes `https://<machine>.<tailnet>.ts.net` → `localhost:1234` (HTTPS, tailnet-only, no port forwarding). This URL is for **remote clients** (phone, other devices). The bridge itself runs on the same Mac as BlueBubbles and always connects via `localhost:1234` directly.
+5. **Prompts for your BlueBubbles password** and saves it to `~/.config/bb-beeper/config.env` (chmod 600). The password is passed to the BlueBubbles API as a query parameter (`?password=`).
+6. **Generates a bridge runner script** at `~/.config/bb-beeper/run-bridge.sh` — includes startup diagnostics (bbctl auth, Tailscale status, BlueBubbles health check) logged before handing off to `bbctl run`
 7. **Installs a LaunchAgent** (`~/Library/LaunchAgents/com.user.bb-beeper-bridge.plist`) — starts at login, auto-restarts with 30 s back-off on crash
 8. **Smoke-tests** the setup and prints a summary
 
@@ -57,25 +57,36 @@ Configuration is saved so re-running the script is idempotent — it updates rat
 ### Useful commands
 
 ```bash
+# Full status diagnostic (health check all components)
+bash debug-status.sh
+
+# Show recent errors only
+bash debug-status.sh --errors
+
 # Follow live bridge logs
 tail -f ~/Library/Logs/bb-beeper-bridge.log
 
-# Stop the bridge
+# Restart the bridge
 launchctl unload ~/Library/LaunchAgents/com.user.bb-beeper-bridge.plist
-
-# Start the bridge
-launchctl load ~/Library/LaunchAgents/com.user.bb-beeper-bridge.plist
+launchctl load  ~/Library/LaunchAgents/com.user.bb-beeper-bridge.plist
 
 # Check Tailscale Serve status
 tailscale serve status
 
-# See which bbctl bridges are running
+# Verify Beeper login and bridge state
 bbctl whoami
 ```
 
 ### File layout
 
 ```
+# Repo
+debug-status.sh               # on-demand diagnostic snapshot
+setup-tailscale-serve.sh      # main setup script (recommended)
+setup.sh                      # legacy interactive setup
+uninstall.sh                  # tear everything down cleanly
+
+# Generated at runtime
 ~/.config/bb-beeper/
 ├── config.env        # saved settings (chmod 600 — contains password)
 └── run-bridge.sh     # generated runner invoked by the LaunchAgent
