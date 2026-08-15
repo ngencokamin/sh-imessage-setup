@@ -1,5 +1,18 @@
 # sh-imessage-setup
-Script to setup or upgrade [sh-imessage](https://github.com/mautrix/imessage) Beeper bridge with BlueBubbles connector
+
+Scripts to set up and maintain the [sh-imessage](https://github.com/mautrix/imessage) Beeper bridge
+with a [BlueBubbles](https://bluebubbles.app) connector on macOS.
+
+Two setup paths are available depending on your use case:
+
+| Script | Proxy method | Best for |
+|---|---|---|
+| `setup-tailscale-serve.sh` | Tailscale Serve (HTTPS, tailnet-only) | Recommended — no port forwarding, auto-restart via LaunchAgent |
+| `setup.sh` | Manual URL / localhost | Legacy — interactive, tmux-optional, cron-based restart |
+
+---
+
+## Recommended: Tailscale Serve setup
 
 ## IMPORTANT NOTICES
 ### Bridge Obsoletion
@@ -8,89 +21,143 @@ General recommendation these days is to use the [corten script](https://github.c
 My trusty 2012 Mac Mini that I was using for this bridge unceremoniously died early-mid 2026. I do not currently own a Mac for personal use. I am happy to try and troubleshoot and fix issues, but I have no way to test them myself.
 
 ### Prerequisites
-Brew: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-Xcode CLI Tools: xcode-select --install 
+All of the following must already be installed and running on the Mac that will serve iMessage:
 
-Blue Bubbles Server setup and running: brew install --cask bluebubbles or https://github.com/BlueBubblesApp/bluebubbles-server/releases/latest
+- **macOS Monterey 12+** (Ventura recommended)
+- **[BlueBubbles Server](https://github.com/BlueBubblesApp/bluebubbles-server/releases/latest)** — running on the default port `1234`
+- **[Tailscale](https://tailscale.com/download/mac)** — connected to your tailnet (standalone install recommended)
+- **[Homebrew](https://brew.sh)**
+- **A Beeper account** — signed into the Beeper app on this Mac
 
-### Installation
+### Usage
 
-##### Required
+```bash
+# Clone (if you haven't already)
+git clone https://github.com/ngencokamin/sh-imessage-setup.git
+cd sh-imessage-setup
 
-- A computer running MacOS which will be left always running with the following software:
- 	- MacOS Catalina minimum, Ventura recommended (more recent versions enable more features, reference the [BlueBubbles documentation](https://docs.bluebubbles.app/server#supported-mac-devices)).
- 	- [BlueBubbles Server](https://github.com/BlueBubblesApp/bluebubbles-server/releases/latest) installed and running.
+# First-time setup or reconfigure
+bash setup-tailscale-serve.sh
 
-##### Optional
-- [tmux](https://github.com/tmux/tmux?tab=readme-ov-file#installation)
-  - This is not *required* to use this script, but provides additional benefits in launching the bridge post-install.
+# Force re-prompt all settings (new password, fresh Tailscale URL, etc.)
+bash setup-tailscale-serve.sh --reset
 
+# Tear everything down cleanly
+bash uninstall.sh
+```
 
-#### Upgrade Unsupported Mac
+### What the script does
 
-If your Mac does not officially support upgrading to Ventura or higher, you can check out OCLP (Opencore Legacy Patcher) [here](https://dortania.github.io/OpenCore-Legacy-Patcher/) to see how you can upgrade. Do note that upgrading with OCLP and then changing hardware can cause issues with iMessage. If you have trouble sending and receiving iMessages after an upgrade and hardware change, check out [this guide](https://gist.github.com/ngencokamin/6643b0253c49817ff20b7d9458fcfe06) to try and resolve it. This is what worked for me when I encountered a hardware ban.
+1. **Checks prerequisites** — BlueBubbles on port 1234, Tailscale connected, Homebrew present
+2. **Installs `bbctl`** (Beeper Bridge Manager) to `~/.local/bin/` — downloads from nightly.link, auto-selects Apple Silicon (`arm64`) or Intel (`amd64`), clears Gatekeeper quarantine
+3. **Logs in to Beeper** via `bbctl login` (browser popup; skipped if already authenticated)
+4. **Configures Tailscale Serve** — exposes `https://<machine>.<tailnet>.ts.net` → `localhost:1234` (HTTPS, tailnet-only, no port forwarding). This URL is for **remote clients** (phone, other devices). The bridge itself runs on the same Mac as BlueBubbles and always connects via `localhost:1234` directly.
+5. **Prompts for your BlueBubbles password** and saves it to `~/.config/bb-beeper/config.env` (chmod 600). The password is passed to the BlueBubbles API as a query parameter (`?password=`).
+6. **Generates a bridge runner script** at `~/.config/bb-beeper/run-bridge.sh` — includes startup diagnostics (bbctl auth, Tailscale status, BlueBubbles health check) logged before handing off to `bbctl run`
+7. **Installs a LaunchAgent** (`~/Library/LaunchAgents/com.user.bb-beeper-bridge.plist`) — starts at login, auto-restarts with 30 s back-off on crash
+8. **Smoke-tests** the setup and prints a summary
 
-#### BlueBubbles
+Configuration is saved so re-running the script is idempotent — it updates rather than rebuilding from scratch.
 
-For initial BlueBubbles setup, see [this guide](https://bluebubbles.app/install/). Additionally, some features also require you disable SIP to enable BlueBubbles’ Private API features. See [this page](https://docs.bluebubbles.app/private-api/) for Private API features, as well as [this page](https://docs.bluebubbles.app/private-api/installation) for a guide on how to disable SIP and enable Private API.
+### Useful commands
 
-### Setup
+```bash
+# Full status diagnostic (health check all components)
+bash debug-status.sh
 
-1. Open a new terminal window on your Mac
-2. Run `git clone https://github.com/ngencokamin/sh-imessage-setup.git` to clone this repo to your device
-3. Navigate into the cloned folder with `cd sh-imessage-setup`
-4. Add run permissions with `chmod +x setup.sh`
-5. Run `./setup.sh` and follow the prompts from the script
+# Show recent errors only
+bash debug-status.sh --errors
 
-### Automating Startup
+# Follow live bridge logs
+tail -f ~/Library/Logs/bb-beeper-bridge.log
 
-The setup script includes a function, `create_cron_job`, which automates the startup of the Bridge script. This function creates a new bash script, `check_and_run.sh`, that checks if the `bbctl` process is running. If it's not, the script sources the `~/.bashrc` file and starts the server using the `start-bb-server` command.
+# Restart the bridge
+launchctl unload ~/Library/LaunchAgents/com.user.bb-beeper-bridge.plist
+launchctl load  ~/Library/LaunchAgents/com.user.bb-beeper-bridge.plist
 
-The `create_cron_job` function also adds a new job to the crontab to run `check_and_run.sh` at system startup and every hour thereafter. This ensures that if the Bridge script encounters an issue and stops running, it will automatically restart. The cron job is set up as follows:
+# Check Tailscale Serve status
+tailscale serve status
 
-- At system reboot, the `check_and_run.sh` script is executed.
-- Every hour, on the hour, the `check_and_run.sh` script is executed again.
+# Verify Beeper login and bridge state
+bbctl whoami
+```
 
-This self-recovery mechanism ensures the continuous operation of the Bridge script.
+### File layout
 
-### Fuction by Function breakdown:
+```
+# Repo
+debug-status.sh               # on-demand diagnostic snapshot
+setup-tailscale-serve.sh      # main setup script (recommended)
+setup.sh                      # legacy interactive setup
+uninstall.sh                  # tear everything down cleanly
 
-Functions
-install_xcode_tools()
-This function checks if Xcode command line tools are installed on the system. If not, it installs them. This is necessary for some of the operations in the script.
+# Generated at runtime
+~/.config/bb-beeper/
+├── config.env        # saved settings (chmod 600 — contains password)
+└── run-bridge.sh     # generated runner invoked by the LaunchAgent
 
-check_macos_version()
-This function checks the version of macOS on the system. If the version is less than the required version for BlueBubbles, it recommends the user to upgrade their macOS version.
+~/Library/LaunchAgents/
+└── com.user.bb-beeper-bridge.plist   # LaunchAgent (auto-start + keep-alive)
 
-backup_bbctl()
-This function finds the path to the bbctl binary, if it exists, and backs it up to the home directory as bbctl.bak.
+~/Library/Logs/
+└── bb-beeper-bridge.log              # stdout + stderr from the bridge
+```
 
-download_bbctl()
-This function downloads the latest bbctl binary for the system's OS and architecture, unzips it, makes it executable, and moves it to /usr/local/bin. It also checks if the bbctl command works after installation.
+---
 
-add_alias()
-This function adds an alias to the user's shell (either .zshrc or .bashrc) to start the BlueBubbles server. The alias is start-bb-server.
+## Legacy: interactive setup (`setup.sh`)
 
-build_command()
-This function builds the command to start the BlueBubbles server. It asks the user for their BlueBubbles URL and password, and builds the command accordingly. If the user chooses to use tmux, it includes tmux in the command.
+The original script from this repo. Supports tmux, optional shell alias, and cron-based restart.
+Does **not** configure Tailscale — you supply the BlueBubbles URL yourself.
 
-ping_bluebubbles_server()
-This function pings the BlueBubbles server at the provided URL to check if it's running and responding to requests.
+### Prerequisites
 
-create_cron_job()
-This function creates a cron job that checks if the bbctl process is running at system startup and every hour thereafter. If it's not running, it starts it. This ensures that the server will automatically restart if it stops for any reason.
+- macOS Catalina minimum, Ventura recommended
+- [BlueBubbles Server](https://github.com/BlueBubblesApp/bluebubbles-server/releases/latest) installed and running
+- [Homebrew](https://brew.sh)
+- Xcode CLI Tools: `xcode-select --install`
+- *(optional)* [tmux](https://github.com/tmux/tmux)
 
-### Credits
+### Usage
 
-None of this would be possible without the recent hard work of Donovon Simpson and Christian Nuss, which built upon the foundational work of Tulir (Beeper Lead Architect and creator of mautrix-imessage ) and the BlueBubbles team who supported this project, along with many community members who tested and reported their findings. To acknowledge and support these incredible folks and their continued efforts, you can donate at the following links:
+```bash
+chmod +x setup.sh
+./setup.sh
+```
 
-- Nix Genco-Kamin (oh hey, it's me): https://www.buymeacoffee.com/ngencokamin
+Follow the interactive prompts. The script will:
+- Install or update `bbctl`
+- Log in to Beeper if needed
+- Ask for your BlueBubbles URL and password
+- Optionally set up a `start-bb-server` shell alias
+- Optionally use tmux for a detached session
+- Create a cron job (`~/check_and_run.sh`) for auto-restart on reboot and hourly
 
-- Tulir: https://github.com/sponsors/tulir
-- Donovon Simpson: https://www.buymeacoffee.com/trek.boldly.go or https://github.com/sponsors/trek-boldly-go
-- BlueBubbles Team: https://bluebubbles.app/donate
-- Christian Nuss: https://github.com/cnuss (awaiting sponsor link)
-- Cameron Aaron: https://www.buymeacoffee.com/cameronaaron or 
-https://github.com/sponsors/cameronaaron
+---
 
+## Upgrading an unsupported Mac
+
+If your Mac doesn't officially support Ventura or later, see
+[OpenCore Legacy Patcher](https://dortania.github.io/OpenCore-Legacy-Patcher/).
+After an OCLP upgrade + hardware change, if iMessage breaks, see
+[this guide](https://gist.github.com/ngencokamin/6643b0253c49817ff20b7d9458fcfe06).
+
+## BlueBubbles Private API
+
+Some features (typing indicators, read receipts, reactions) require disabling SIP and enabling
+BlueBubbles' Private API. See the [Private API docs](https://docs.bluebubbles.app/private-api/)
+and [installation guide](https://docs.bluebubbles.app/private-api/installation).
+
+---
+
+## Credits
+
+None of this would be possible without the work of:
+
+- **Nix Genco-Kamin** (original script author) — https://www.buymeacoffee.com/ngencokamin
+- **Tulir** (Beeper Lead Architect, mautrix-imessage) — https://github.com/sponsors/tulir
+- **Donovon Simpson** — https://www.buymeacoffee.com/trek.boldly.go
+- **BlueBubbles Team** — https://bluebubbles.app/donate
+- **Christian Nuss** — https://github.com/cnuss
+- **Cameron Aaron** — https://www.buymeacoffee.com/cameronaaron
