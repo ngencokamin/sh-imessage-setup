@@ -8,11 +8,13 @@ General recommendation these days is to use the [corten script](https://github.c
 My trusty 2012 Mac Mini that I was using for this bridge unceremoniously died early-mid 2026. I do not currently own a Mac for personal use. I am happy to try and troubleshoot and fix issues, but I have no way to test them myself.
 
 ### Prerequisites
-Brew: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+Brew: `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`
 
-Xcode CLI Tools: xcode-select --install 
+Xcode CLI Tools: `xcode-select --install`
 
-Blue Bubbles Server setup and running: brew install --cask bluebubbles or https://github.com/BlueBubblesApp/bluebubbles-server/releases/latest
+Blue Bubbles Server setup and running: `brew install --cask bluebubbles` or https://github.com/BlueBubblesApp/bluebubbles-server/releases/latest
+
+libolm: `brew install libolm`
 
 ### Installation
 
@@ -37,11 +39,12 @@ For initial BlueBubbles setup, see [this guide](https://bluebubbles.app/install/
 
 ### Setup
 
-1. Open a new terminal window on your Mac
-2. Run `git clone https://github.com/ngencokamin/sh-imessage-setup.git` to clone this repo to your device
-3. Navigate into the cloned folder with `cd sh-imessage-setup`
-4. Add run permissions with `chmod +x setup.sh`
-5. Run `./setup.sh` and follow the prompts from the script
+1. Install prerequisites
+2. Open a new terminal window on your Mac
+3. Run `git clone https://github.com/ngencokamin/sh-imessage-setup.git` to clone this repo to your device
+4. Navigate into the cloned folder with `cd sh-imessage-setup`
+5. Add run permissions with `chmod +x setup.sh`
+6. Run `./setup.sh` and follow the prompts from the script
 
 ### Automating Startup
 
