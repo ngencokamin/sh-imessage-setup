@@ -1,6 +1,12 @@
 # sh-imessage-setup
 Script to setup or upgrade [sh-imessage](https://github.com/mautrix/imessage) Beeper bridge with BlueBubbles connector
 
+## IMPORTANT NOTICES
+### Bridge Obsoletion
+General recommendation these days is to use the [corten script](https://github.com/lrhodin/corten-matrix). I haven't had a chance to test it yet, but by all accounts it is more stable, does not require a mac always be running, and supports more features. Also, it can run on Linux as long as you get the hardware key from a mac. Check out the README of that repo and the imessage bridge matrix room (#imessage:maunium.net) for more info.
+### Testing New Changes
+My trusty 2012 Mac Mini that I was using for this bridge unceremoniously died early-mid 2026. I do not currently own a Mac for personal use. I am happy to try and troubleshoot and fix issues, but I have no way to test them myself.
+
 ### Prerequisites
 Brew: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
